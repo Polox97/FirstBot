@@ -1,7 +1,14 @@
+require('dotenv').config()
 const { createBot, createProvider, createFlow, addKeyword } = require('@bot-whatsapp/bot')
 
 const TwilioProvider = require('@bot-whatsapp/provider/twilio')
 const MongoAdapter = require('@bot-whatsapp/database/mongo')
+
+const ChatGPTClass = require('./chatgpt.class')
+
+const createBotGPT = async ({ provider, database }) => {
+    return new ChatGPTClass(database, provider)
+}
 
 /**
  * Declaramos las conexiones de Mongo
@@ -81,19 +88,21 @@ const flowPrincipal = addKeyword(['hola', 'ole', 'alo'])
     )
 
 const main = async () => {
+    console.log(process.env.ACCOUNT_SID)
+    console.log(process.env.TWILIO_AUTH_TOKEN)
     const adapterDB = new MongoAdapter({
         dbUri: MONGO_DB_URI,
         dbName: MONGO_DB_NAME,
     })
-    const adapterFlow = createFlow([flowPrincipal])
+   // const adapterFlow = createFlow([flowPrincipal])
     const adapterProvider = createProvider(TwilioProvider, {
-        accountSid: 'AC0a4c435fb8aa910cfc709197a7ac17d6',
-        authToken: '2ea6335c26a494cbb7a44b905dfbd612',
+        accountSid: process.env.ACCOUNT_SID,
+        authToken: process.env.TWILIO_AUTH_TOKEN,
         vendorNumber: '+14155238886',
     })
 
-    createBot({
-        flow: adapterFlow,
+    createBotGPT({
+        //flow: adapterFlow,
         provider: adapterProvider,
         database: adapterDB,
     })
